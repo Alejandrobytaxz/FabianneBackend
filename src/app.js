@@ -9,6 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Importar rutas
+const authRoutes = require('./routes/auth');
 const usuariosRoutes = require('./routes/usuarios');
 const productosRoutes = require('./routes/productos');
 const entradasRoutes = require('./routes/entradas');
@@ -21,15 +22,17 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     status: 'OK',
     endpoints: {
-      usuarios: '/api/usuarios',
-      productos: '/api/productos',
-      entradas: '/api/entradas',
-      salidas: '/api/salidas'
+      auth: '/api/auth (register, login, verify, change-password)',
+      usuarios: '/api/usuarios (requiere autenticación)',
+      productos: '/api/productos (requiere autenticación)',
+      entradas: '/api/entradas (requiere autenticación)',
+      salidas: '/api/salidas (requiere autenticación)'
     }
   });
 });
 
 // Usar rutas
+app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/productos', productosRoutes);
 app.use('/api/entradas', entradasRoutes);

@@ -1,4 +1,5 @@
 const { prisma } = require('../config/prisma');
+const bcrypt = require('bcrypt');
 
 // Obtener todos los usuarios
 exports.getAllUsuarios = async (req, res) => {
@@ -47,13 +48,33 @@ exports.getUsuarioById = async (req, res) => {
   }
 };
 
-// Crear un nuevo usuario
+// Crear un nuevo usuario (con hash de contraseña)
 exports.createUsuario = async (req, res) => {
   try {
     const { nombre, cargo, email, password } = req.body;
     
+    // Verificar si el email ya existe
+    const emailExiste = await prisma.usuario.findUnique({
+      where: { email }
+    });
+    
+    if (emailExiste) {
+      return res.status(400).json({ 
+        error: 'El email ya está registrado' 
+      });
+    }
+    
+    // Hash de la contraseña
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    
     const usuario = await prisma.usuario.create({
-      data: { nombre, cargo, email, password }
+      data: { 
+        nombre, 
+        cargo, 
+        email, 
+        password: hashedPassword 
+      }
     });
     
     res.status(201).json({ 
@@ -74,11 +95,27 @@ exports.createUsuario = async (req, res) => {
 exports.updateUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, cargo, email, activo } = req.body;
+    const { nombre, cargo, email, activo, password } = req.body;
+    
+    const updateData = { nombre, cargo, email, activo };
+    
+    // Si se proporciona nueva contraseña, hashearla
+    if (password) {
+      const saltRounds = 10;
+      updateData.password = await bcrypt.hash(password, saltRounds);
+    }
     
     const usuario = await prisma.usuario.update({
       where: { id: parseInt(id) },
-      data: { nombre, cargo, email, activo }
+      data: updateData,
+      select: {
+        id: true,
+        nombre: true,
+        cargo: true,
+        email: true,
+        activo: true,
+        updatedAt: true
+      }
     });
     
     res.json({ message: 'Usuario actualizado exitosamente', usuario });

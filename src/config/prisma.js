@@ -13,7 +13,18 @@ const dbConfig = {
   password: urlMatch ? urlMatch[2] : '',
   database: urlMatch ? urlMatch[5] : 'calzado_fabianne',
   connectionLimit: 10,
+  acquireTimeout: 30000,
+  connectTimeout: 10000,
+  idleTimeout: 600000,
+  minimumIdle: 2
 };
+
+console.log('📊 Configuración de base de datos:', {
+  host: dbConfig.host,
+  port: dbConfig.port,
+  user: dbConfig.user,
+  database: dbConfig.database
+});
 
 // Crear pool de conexiones MariaDB/MySQL
 const pool = mariadb.createPool(dbConfig);
@@ -30,11 +41,17 @@ const prisma = new PrismaClient({
 // Función para conectar a la base de datos
 const connectDB = async () => {
   try {
+    // Probar conexión directa del pool primero
+    const conn = await pool.getConnection();
+    console.log('✅ Pool de MariaDB conectado');
+    conn.release();
+    
     await prisma.$connect();
     console.log('✅ Prisma conectado a MySQL correctamente');
     return true;
   } catch (error) {
-    console.error('❌ Error al conectar Prisma a MySQL:', error.message);
+    console.error('❌ Error al conectar a MySQL:', error.message);
+    console.error('Detalles del error:', error);
     return false;
   }
 };

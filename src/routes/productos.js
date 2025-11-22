@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const productoController = require('../controllers/productoController');
+const { authMiddleware } = require('../middlewares/auth');
+
+// Todas las rutas de productos requieren autenticación
+router.use(authMiddleware);
 
 router.get('/', productoController.getAllProductos);
 router.get('/:id', productoController.getProductoById);
