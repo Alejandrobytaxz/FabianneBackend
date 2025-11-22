@@ -1,14 +1,14 @@
 require('dotenv').config();
 const app = require('./app');
-const { testConnection } = require('./config/database');
+const { connectDB } = require('./config/prisma');
 
 const PORT = process.env.PORT || 3000;
 
 // Iniciar servidor y verificar conexión a la base de datos
 const startServer = async () => {
   try {
-    // Verificar conexión a la base de datos
-    await testConnection();
+    // Conectar Prisma a la base de datos
+    await connectDB();
     
     // Iniciar servidor
     app.listen(PORT, () => {
