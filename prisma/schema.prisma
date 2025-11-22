@@ -9,22 +9,184 @@ datasource db {
   provider = "mysql"
 }
 
-// Modelo de ejemplo - Usuarios
+// Usuarios del sistema (empleados/administradores)
 model Usuario {
   id        Int      @id @default(autoincrement())
   nombre    String   @db.VarChar(100)
+  cargo     String   @db.VarChar(50)
   email     String   @unique @db.VarChar(100)
   password  String   @db.VarChar(255)
-  rol       Rol      @default(CLIENTE)
+  activo    Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  entradas  Entrada[]
+  salidas   Salida[]
 
   @@map("usuarios")
 }
 
-enum Rol {
-  ADMIN
-  EMPLEADO
-  CLIENTE
+// Categorías de productos
+model Categoria {
+  id          Int        @id @default(autoincrement())
+  nombre      String     @db.VarChar(100)
+  descripcion String?    @db.Text
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  // Relaciones
+  productos   Producto[]
+
+  @@map("categorias")
+}
+
+// Productos (calzado)
+model Producto {
+  id            Int      @id @default(autoincrement())
+  codigo        String   @unique @db.VarChar(50)
+  nombre        String   @db.VarChar(150)
+  descripcion   String?  @db.Text
+  categoriaId   Int      @map("categoria_id")
+  marca         String?  @db.VarChar(100)
+  precioCompra  Decimal  @db.Decimal(10, 2) @map("precio_compra")
+  precioVenta   Decimal  @db.Decimal(10, 2) @map("precio_venta")
+  stockMinimo   Int      @default(0) @map("stock_minimo")
+  activo        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  categoria     Categoria        @relation(fields: [categoriaId], references: [id])
+  detalles      DetalleProducto[]
+  detallesEntrada DetalleEntrada[]
+  detallesSalida  DetalleSalida[]
+
+  @@index([categoriaId])
+  @@map("productos")
+}
+
+// Detalles de productos (tallas, colores, stock específico)
+model DetalleProducto {
+  id          Int      @id @default(autoincrement())
+  productoId  Int      @map("producto_id")
+  talla       String   @db.VarChar(10)
+  color       String   @db.VarChar(50)
+  stock       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  producto    Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  @@unique([productoId, talla, color])
+  @@index([productoId])
+  @@map("detalles_producto")
+}
+
+// Proveedores
+model Proveedor {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @db.VarChar(150)
+  ruc       String?  @unique @db.VarChar(11)
+  telefono  String?  @db.VarChar(20)
+  email     String?  @db.VarChar(100)
+  direccion String?  @db.Text
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  entradas  Entrada[]
+
+  @@map("proveedores")
+}
+
+// Entradas de productos al almacén
+model Entrada {
+  id            Int      @id @default(autoincrement())
+  numeroDocumento String @unique @db.VarChar(50) @map("numero_documento")
+  proveedorId   Int?     @map("proveedor_id")
+  usuarioId     Int      @map("usuario_id")
+  fechaEntrada  DateTime @default(now()) @map("fecha_entrada")
+  tipoDocumento String   @db.VarChar(50) @map("tipo_documento") // Factura, Boleta, Guía
+  observaciones String?  @db.Text
+  total         Decimal  @db.Decimal(10, 2) @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  proveedor     Proveedor? @relation(fields: [proveedorId], references: [id])
+  usuario       Usuario    @relation(fields: [usuarioId], references: [id])
+  detalles      DetalleEntrada[]
+
+  @@index([proveedorId])
+  @@index([usuarioId])
+  @@index([fechaEntrada])
+  @@map("entradas")
+}
+
+// Detalle de entradas
+model DetalleEntrada {
+  id          Int      @id @default(autoincrement())
+  entradaId   Int      @map("entrada_id")
+  productoId  Int      @map("producto_id")
+  talla       String   @db.VarChar(10)
+  color       String   @db.VarChar(50)
+  cantidad    Int
+  precioUnitario Decimal @db.Decimal(10, 2) @map("precio_unitario")
+  subtotal    Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relaciones
+  entrada     Entrada  @relation(fields: [entradaId], references: [id], onDelete: Cascade)
+  producto    Producto @relation(fields: [productoId], references: [id])
+
+  @@index([entradaId])
+  @@index([productoId])
+  @@map("detalles_entrada")
+}
+
+// Salidas de productos del almacén
+model Salida {
+  id            Int      @id @default(autoincrement())
+  numeroDocumento String @unique @db.VarChar(50) @map("numero_documento")
+  usuarioId     Int      @map("usuario_id")
+  fechaSalida   DateTime @default(now()) @map("fecha_salida")
+  tipoSalida    String   @db.VarChar(50) @map("tipo_salida") // Venta, Devolución, Pérdida, Traslado
+  destinatario  String?  @db.VarChar(150)
+  observaciones String?  @db.Text
+  total         Decimal  @db.Decimal(10, 2) @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
+  detalles      DetalleSalida[]
+
+  @@index([usuarioId])
+  @@index([fechaSalida])
+  @@map("salidas")
+}
+
+// Detalle de salidas
+model DetalleSalida {
+  id          Int      @id @default(autoincrement())
+  salidaId    Int      @map("salida_id")
+  productoId  Int      @map("producto_id")
+  talla       String   @db.VarChar(10)
+  color       String   @db.VarChar(50)
+  cantidad    Int
+  precioUnitario Decimal @db.Decimal(10, 2) @map("precio_unitario")
+  subtotal    Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relaciones
+  salida      Salida   @relation(fields: [salidaId], references: [id], onDelete: Cascade)
+  producto    Producto @relation(fields: [productoId], references: [id])
+
+  @@index([salidaId])
+  @@index([productoId])
+  @@map("detalles_salida")
 }
 

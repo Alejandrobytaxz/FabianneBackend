@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const mariadb = require('mariadb');
-const { PrismaMariadb } = require('@prisma/adapter-mariadb');
+const { PrismaMariaDb } = require('@prisma/adapter-mariadb');
 
 // Extraer información de la URL de la base de datos
 const dbUrl = process.env.DATABASE_URL || 'mysql://root:@localhost:3306/calzado_fabianne';
@@ -19,7 +19,7 @@ const dbConfig = {
 const pool = mariadb.createPool(dbConfig);
 
 // Crear adaptador
-const adapter = new PrismaMariadb(pool);
+const adapter = new PrismaMariaDb(pool);
 
 // Crear instancia de Prisma Client con el adaptador
 const prisma = new PrismaClient({
