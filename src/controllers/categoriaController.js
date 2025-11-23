@@ -50,10 +50,7 @@ exports.createCategoria = async (req, res) => {
     // Verificar si ya existe una categoría con el mismo nombre
     const categoriaExistente = await prisma.categoria.findFirst({
       where: { 
-        nombre: {
-          equals: nombre,
-          mode: 'insensitive'
-        }
+        nombre: nombre
       }
     });
     
@@ -104,10 +101,7 @@ exports.updateCategoria = async (req, res) => {
     if (nombre && nombre !== categoriaExistente.nombre) {
       const nombreDuplicado = await prisma.categoria.findFirst({
         where: { 
-          nombre: {
-            equals: nombre,
-            mode: 'insensitive'
-          },
+          nombre: nombre,
           NOT: { id: idNum }
         }
       });

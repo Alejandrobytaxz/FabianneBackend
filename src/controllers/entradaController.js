@@ -74,32 +74,40 @@ exports.createEntrada = async (req, res) => {
       return sum + (parseFloat(item.cantidad) * parseFloat(item.precioUnitario));
     }, 0);
 
-    // Convertir proveedorId a número o null
-    const proveedorIdNum = proveedorId ? parseInt(proveedorId) : null;
     const usuarioIdNum = parseInt(usuarioId);
+    
+    // Preparar datos de entrada
+    const entradaData = {
+      numeroDocumento,
+      usuarioId: usuarioIdNum,
+      tipoDocumento,
+      observaciones,
+      total,
+      detalles: {
+        create: detalles.map(detalle => ({
+          productoId: parseInt(detalle.productoId),
+          talla: detalle.talla,
+          color: detalle.color,
+          cantidad: parseInt(detalle.cantidad),
+          precioUnitario: parseFloat(detalle.precioUnitario),
+          subtotal: parseInt(detalle.cantidad) * parseFloat(detalle.precioUnitario)
+        }))
+      }
+    };
+    
+    // Solo agregar proveedorId si tiene un valor válido (número mayor a 0)
+    if (proveedorId !== undefined && proveedorId !== null && proveedorId !== '') {
+      const proveedorIdNum = parseInt(proveedorId);
+      if (!isNaN(proveedorIdNum) && proveedorIdNum > 0) {
+        entradaData.proveedorId = proveedorIdNum;
+      }
+    }
     
     // Usar transacción para crear entrada y actualizar stock
     const entrada = await prisma.$transaction(async (tx) => {
       // Crear entrada
       const nuevaEntrada = await tx.entrada.create({
-        data: {
-          numeroDocumento,
-          proveedorId: proveedorIdNum,
-          usuarioId: usuarioIdNum,
-          tipoDocumento,
-          observaciones,
-          total,
-          detalles: {
-            create: detalles.map(detalle => ({
-              productoId: parseInt(detalle.productoId),
-              talla: detalle.talla,
-              color: detalle.color,
-              cantidad: parseInt(detalle.cantidad),
-              precioUnitario: parseFloat(detalle.precioUnitario),
-              subtotal: parseInt(detalle.cantidad) * parseFloat(detalle.precioUnitario)
-            }))
-          }
-        },
+        data: entradaData,
         include: {
           detalles: true
         }
