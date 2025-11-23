@@ -14,7 +14,7 @@ datasource db {
 model Usuario {
   id        Int      @id @default(autoincrement())
   nombre    String   @db.VarChar(100)
-  cargo     String   @db.VarChar(50)
+  cargo     String?  @db.VarChar(100) // Opcional: descripción del cargo específico
   email     String   @unique @db.VarChar(100)
   password  String   @db.VarChar(255)
   rol       String   @default("Personal") @db.VarChar(50) // "Administrador" o "Personal"

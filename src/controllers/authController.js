@@ -8,9 +8,9 @@ exports.register = async (req, res) => {
     const { nombre, cargo, email, password, rol } = req.body;
     
     // Validar campos requeridos
-    if (!nombre || !cargo || !email || !password) {
+    if (!nombre || !email || !password) {
       return res.status(400).json({ 
-        error: 'Todos los campos son requeridos' 
+        error: 'Nombre, email y contraseña son requeridos' 
       });
     }
     
@@ -54,7 +54,6 @@ exports.register = async (req, res) => {
         id: usuario.id, 
         email: usuario.email,
         nombre: usuario.nombre,
-        cargo: usuario.cargo,
         rol: usuario.rol
       },
       process.env.JWT_SECRET,
@@ -127,7 +126,6 @@ exports.login = async (req, res) => {
         id: usuario.id, 
         email: usuario.email,
         nombre: usuario.nombre,
-        cargo: usuario.cargo,
         rol: usuario.rol
       },
       process.env.JWT_SECRET,
