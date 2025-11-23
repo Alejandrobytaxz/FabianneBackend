@@ -51,18 +51,39 @@ exports.createSalida = async (req, res) => {
   try {
     const { numeroDocumento, usuarioId, tipoSalida, destinatario, observaciones, detalles } = req.body;
     
-    // Calcular total
+    // Validar campos requeridos
+    if (!numeroDocumento || !usuarioId || !tipoSalida || !detalles || detalles.length === 0) {
+      return res.status(400).json({ 
+        error: 'Faltan campos requeridos: numeroDocumento, usuarioId, tipoSalida, detalles' 
+      });
+    }
+
+    // Validar detalles
+    for (const detalle of detalles) {
+      if (!detalle.productoId || !detalle.talla || !detalle.color || !detalle.cantidad || detalle.precioUnitario == null) {
+        return res.status(400).json({ 
+          error: 'Cada detalle debe tener: productoId, talla, color, cantidad, precioUnitario' 
+        });
+      }
+    }
+    
+    // Calcular total con conversión a número
     const total = detalles.reduce((sum, item) => {
       return sum + (parseFloat(item.cantidad) * parseFloat(item.precioUnitario));
     }, 0);
+
+    const usuarioIdNum = parseInt(usuarioId);
     
     // Usar transacción para crear salida y actualizar stock
     const salida = await prisma.$transaction(async (tx) => {
       // Verificar stock disponible para cada producto
       for (const detalle of detalles) {
+        const productoIdNum = parseInt(detalle.productoId);
+        const cantidadNum = parseInt(detalle.cantidad);
+
         const detalleProducto = await tx.detalleProducto.findFirst({
           where: {
-            productoId: detalle.productoId,
+            productoId: productoIdNum,
             talla: detalle.talla,
             color: detalle.color
           }
@@ -72,7 +93,7 @@ exports.createSalida = async (req, res) => {
           throw new Error(`Producto no encontrado: ${detalle.talla} - ${detalle.color}`);
         }
         
-        if (detalleProducto.stock < detalle.cantidad) {
+        if (detalleProducto.stock < cantidadNum) {
           throw new Error(`Stock insuficiente para: ${detalle.talla} - ${detalle.color}. Stock disponible: ${detalleProducto.stock}`);
         }
       }
@@ -81,19 +102,19 @@ exports.createSalida = async (req, res) => {
       const nuevaSalida = await tx.salida.create({
         data: {
           numeroDocumento,
-          usuarioId,
+          usuarioId: usuarioIdNum,
           tipoSalida,
           destinatario,
           observaciones,
           total,
           detalles: {
             create: detalles.map(detalle => ({
-              productoId: detalle.productoId,
+              productoId: parseInt(detalle.productoId),
               talla: detalle.talla,
               color: detalle.color,
-              cantidad: detalle.cantidad,
-              precioUnitario: detalle.precioUnitario,
-              subtotal: detalle.cantidad * detalle.precioUnitario
+              cantidad: parseInt(detalle.cantidad),
+              precioUnitario: parseFloat(detalle.precioUnitario),
+              subtotal: parseInt(detalle.cantidad) * parseFloat(detalle.precioUnitario)
             }))
           }
         },
@@ -104,9 +125,12 @@ exports.createSalida = async (req, res) => {
       
       // Actualizar stock de cada producto
       for (const detalle of detalles) {
+        const productoIdNum = parseInt(detalle.productoId);
+        const cantidadNum = parseInt(detalle.cantidad);
+
         const detalleProducto = await tx.detalleProducto.findFirst({
           where: {
-            productoId: detalle.productoId,
+            productoId: productoIdNum,
             talla: detalle.talla,
             color: detalle.color
           }
@@ -114,7 +138,7 @@ exports.createSalida = async (req, res) => {
         
         await tx.detalleProducto.update({
           where: { id: detalleProducto.id },
-          data: { stock: { decrement: detalle.cantidad } }
+          data: { stock: { decrement: cantidadNum } }
         });
       }
       

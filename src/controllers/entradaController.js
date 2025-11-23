@@ -53,10 +53,30 @@ exports.createEntrada = async (req, res) => {
   try {
     const { numeroDocumento, proveedorId, usuarioId, tipoDocumento, observaciones, detalles } = req.body;
     
-    // Calcular total
+    // Validar campos requeridos
+    if (!numeroDocumento || !usuarioId || !tipoDocumento || !detalles || detalles.length === 0) {
+      return res.status(400).json({ 
+        error: 'Faltan campos requeridos: numeroDocumento, usuarioId, tipoDocumento, detalles' 
+      });
+    }
+
+    // Validar detalles
+    for (const detalle of detalles) {
+      if (!detalle.productoId || !detalle.talla || !detalle.color || !detalle.cantidad || detalle.precioUnitario == null) {
+        return res.status(400).json({ 
+          error: 'Cada detalle debe tener: productoId, talla, color, cantidad, precioUnitario' 
+        });
+      }
+    }
+    
+    // Calcular total con conversión a número
     const total = detalles.reduce((sum, item) => {
       return sum + (parseFloat(item.cantidad) * parseFloat(item.precioUnitario));
     }, 0);
+
+    // Convertir proveedorId a número o null
+    const proveedorIdNum = proveedorId ? parseInt(proveedorId) : null;
+    const usuarioIdNum = parseInt(usuarioId);
     
     // Usar transacción para crear entrada y actualizar stock
     const entrada = await prisma.$transaction(async (tx) => {
@@ -64,19 +84,19 @@ exports.createEntrada = async (req, res) => {
       const nuevaEntrada = await tx.entrada.create({
         data: {
           numeroDocumento,
-          proveedorId,
-          usuarioId,
+          proveedorId: proveedorIdNum,
+          usuarioId: usuarioIdNum,
           tipoDocumento,
           observaciones,
           total,
           detalles: {
             create: detalles.map(detalle => ({
-              productoId: detalle.productoId,
+              productoId: parseInt(detalle.productoId),
               talla: detalle.talla,
               color: detalle.color,
-              cantidad: detalle.cantidad,
-              precioUnitario: detalle.precioUnitario,
-              subtotal: detalle.cantidad * detalle.precioUnitario
+              cantidad: parseInt(detalle.cantidad),
+              precioUnitario: parseFloat(detalle.precioUnitario),
+              subtotal: parseInt(detalle.cantidad) * parseFloat(detalle.precioUnitario)
             }))
           }
         },
@@ -87,10 +107,13 @@ exports.createEntrada = async (req, res) => {
       
       // Actualizar stock de cada producto
       for (const detalle of detalles) {
+        const productoIdNum = parseInt(detalle.productoId);
+        const cantidadNum = parseInt(detalle.cantidad);
+
         // Buscar si existe el detalle del producto
         const detalleExistente = await tx.detalleProducto.findFirst({
           where: {
-            productoId: detalle.productoId,
+            productoId: productoIdNum,
             talla: detalle.talla,
             color: detalle.color
           }
@@ -100,16 +123,16 @@ exports.createEntrada = async (req, res) => {
           // Incrementar stock existente
           await tx.detalleProducto.update({
             where: { id: detalleExistente.id },
-            data: { stock: { increment: detalle.cantidad } }
+            data: { stock: { increment: cantidadNum } }
           });
         } else {
           // Crear nuevo detalle de producto
           await tx.detalleProducto.create({
             data: {
-              productoId: detalle.productoId,
+              productoId: productoIdNum,
               talla: detalle.talla,
               color: detalle.color,
-              stock: detalle.cantidad
+              stock: cantidadNum
             }
           });
         }

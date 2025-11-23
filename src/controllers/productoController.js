@@ -42,16 +42,40 @@ exports.createProducto = async (req, res) => {
   try {
     const { codigo, nombre, descripcion, categoriaId, marca, precioCompra, precioVenta, stockMinimo, detalles } = req.body;
     
+    // Validar campos requeridos
+    if (!codigo || !nombre || !categoriaId || precioCompra == null || precioVenta == null || stockMinimo == null) {
+      return res.status(400).json({ 
+        error: 'Faltan campos requeridos: codigo, nombre, categoriaId, precioCompra, precioVenta, stockMinimo' 
+      });
+    }
+
+    // Convertir a números
+    const categoriaIdNum = parseInt(categoriaId);
+    const precioCompraNum = parseFloat(precioCompra);
+    const precioVentaNum = parseFloat(precioVenta);
+    const stockMinimoNum = parseInt(stockMinimo);
+
+    // Validar que la categoría exista
+    const categoriaExiste = await prisma.categoria.findUnique({
+      where: { id: categoriaIdNum }
+    });
+
+    if (!categoriaExiste) {
+      return res.status(400).json({ 
+        error: `La categoría con ID ${categoriaIdNum} no existe` 
+      });
+    }
+    
     const producto = await prisma.producto.create({
       data: {
         codigo,
         nombre,
         descripcion,
-        categoriaId,
+        categoriaId: categoriaIdNum,
         marca,
-        precioCompra,
-        precioVenta,
-        stockMinimo,
+        precioCompra: precioCompraNum,
+        precioVenta: precioVentaNum,
+        stockMinimo: stockMinimoNum,
         detalles: {
           create: detalles || []
         }
@@ -74,9 +98,21 @@ exports.updateProducto = async (req, res) => {
     const { id } = req.params;
     const { codigo, nombre, descripcion, categoriaId, marca, precioCompra, precioVenta, stockMinimo, activo } = req.body;
     
+    // Construir objeto de actualización solo con campos definidos
+    const updateData = {};
+    if (codigo !== undefined) updateData.codigo = codigo;
+    if (nombre !== undefined) updateData.nombre = nombre;
+    if (descripcion !== undefined) updateData.descripcion = descripcion;
+    if (categoriaId !== undefined) updateData.categoriaId = parseInt(categoriaId);
+    if (marca !== undefined) updateData.marca = marca;
+    if (precioCompra !== undefined) updateData.precioCompra = parseFloat(precioCompra);
+    if (precioVenta !== undefined) updateData.precioVenta = parseFloat(precioVenta);
+    if (stockMinimo !== undefined) updateData.stockMinimo = parseInt(stockMinimo);
+    if (activo !== undefined) updateData.activo = activo;
+    
     const producto = await prisma.producto.update({
       where: { id: parseInt(id) },
-      data: { codigo, nombre, descripcion, categoriaId, marca, precioCompra, precioVenta, stockMinimo, activo },
+      data: updateData,
       include: {
         categoria: true,
         detalles: true
