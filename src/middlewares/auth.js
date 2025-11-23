@@ -31,7 +31,8 @@ const authMiddleware = (req, res, next) => {
       id: decoded.id,
       email: decoded.email,
       nombre: decoded.nombre,
-      cargo: decoded.cargo
+      cargo: decoded.cargo,
+      rol: decoded.rol
     };
     
     next();
@@ -78,7 +79,8 @@ const optionalAuth = (req, res, next) => {
       id: decoded.id,
       email: decoded.email,
       nombre: decoded.nombre,
-      cargo: decoded.cargo
+      cargo: decoded.cargo,
+      rol: decoded.rol
     };
     
     next();
@@ -88,7 +90,43 @@ const optionalAuth = (req, res, next) => {
   }
 };
 
+// Middleware para verificar que el usuario es Administrador
+const isAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ 
+      error: 'Autenticación requerida' 
+    });
+  }
+  
+  if (req.user.rol !== 'Administrador') {
+    return res.status(403).json({ 
+      error: 'Acceso denegado. Se requieren permisos de Administrador' 
+    });
+  }
+  
+  next();
+};
+
+// Middleware para verificar que el usuario es Administrador o Personal
+const isAdminOrPersonal = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ 
+      error: 'Autenticación requerida' 
+    });
+  }
+  
+  if (req.user.rol !== 'Administrador' && req.user.rol !== 'Personal') {
+    return res.status(403).json({ 
+      error: 'Acceso denegado' 
+    });
+  }
+  
+  next();
+};
+
 module.exports = {
   authMiddleware,
-  optionalAuth
+  optionalAuth,
+  isAdmin,
+  isAdminOrPersonal
 };

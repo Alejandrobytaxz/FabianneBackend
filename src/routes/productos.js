@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const productoController = require('../controllers/productoController');
-const { authMiddleware } = require('../middlewares/auth');
+const { authMiddleware, isAdmin } = require('../middlewares/auth');
 
-// Todas las rutas de productos requieren autenticación
-router.use(authMiddleware);
+// Rutas de solo lectura - accesible para todos los autenticados
+router.get('/', authMiddleware, productoController.getAllProductos);
+router.get('/:id', authMiddleware, productoController.getProductoById);
+router.get('/:id/stock', authMiddleware, productoController.getStockProducto);
 
-router.get('/', productoController.getAllProductos);
-router.get('/:id', productoController.getProductoById);
-router.get('/:id/stock', productoController.getStockProducto);
-router.post('/', productoController.createProducto);
-router.put('/:id', productoController.updateProducto);
+// Rutas de escritura - solo para Administrador
+router.post('/', authMiddleware, isAdmin, productoController.createProducto);
+router.put('/:id', authMiddleware, isAdmin, productoController.updateProducto);
 
 module.exports = router;

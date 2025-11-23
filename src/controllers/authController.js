@@ -5,12 +5,20 @@ const jwt = require('jsonwebtoken');
 // Registrar nuevo usuario
 exports.register = async (req, res) => {
   try {
-    const { nombre, cargo, email, password } = req.body;
+    const { nombre, cargo, email, password, rol } = req.body;
     
     // Validar campos requeridos
     if (!nombre || !cargo || !email || !password) {
       return res.status(400).json({ 
         error: 'Todos los campos son requeridos' 
+      });
+    }
+    
+    // Validar rol (solo Administrador o Personal)
+    const rolValido = rol || 'Personal';
+    if (rolValido !== 'Administrador' && rolValido !== 'Personal') {
+      return res.status(400).json({ 
+        error: 'El rol debe ser "Administrador" o "Personal"' 
       });
     }
     
@@ -35,7 +43,8 @@ exports.register = async (req, res) => {
         nombre,
         cargo,
         email,
-        password: hashedPassword
+        password: hashedPassword,
+        rol: rolValido
       }
     });
     
@@ -45,7 +54,8 @@ exports.register = async (req, res) => {
         id: usuario.id, 
         email: usuario.email,
         nombre: usuario.nombre,
-        cargo: usuario.cargo
+        cargo: usuario.cargo,
+        rol: usuario.rol
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
@@ -59,6 +69,7 @@ exports.register = async (req, res) => {
         nombre: usuario.nombre,
         cargo: usuario.cargo,
         email: usuario.email,
+        rol: usuario.rol,
         activo: usuario.activo
       }
     });
@@ -116,7 +127,8 @@ exports.login = async (req, res) => {
         id: usuario.id, 
         email: usuario.email,
         nombre: usuario.nombre,
-        cargo: usuario.cargo
+        cargo: usuario.cargo,
+        rol: usuario.rol
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
@@ -130,6 +142,7 @@ exports.login = async (req, res) => {
         nombre: usuario.nombre,
         cargo: usuario.cargo,
         email: usuario.email,
+        rol: usuario.rol,
         activo: usuario.activo
       }
     });
@@ -153,6 +166,7 @@ exports.verifyToken = async (req, res) => {
         nombre: true,
         cargo: true,
         email: true,
+        rol: true,
         activo: true,
         createdAt: true
       }

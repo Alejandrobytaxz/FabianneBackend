@@ -1,15 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const usuarioController = require('../controllers/usuarioController');
-const { authMiddleware } = require('../middlewares/auth');
+const { authMiddleware, isAdmin } = require('../middlewares/auth');
 
-// Todas las rutas de usuarios requieren autenticación
-router.use(authMiddleware);
-
-router.get('/', usuarioController.getAllUsuarios);
-router.get('/:id', usuarioController.getUsuarioById);
-router.post('/', usuarioController.createUsuario);
-router.put('/:id', usuarioController.updateUsuario);
-router.delete('/:id', usuarioController.deleteUsuario);
+// Todas las rutas de usuarios requieren autenticación y rol de Administrador
+router.get('/', authMiddleware, isAdmin, usuarioController.getAllUsuarios);
+router.get('/:id', authMiddleware, isAdmin, usuarioController.getUsuarioById);
+router.post('/', authMiddleware, isAdmin, usuarioController.createUsuario);
+router.put('/:id', authMiddleware, isAdmin, usuarioController.updateUsuario);
+router.delete('/:id', authMiddleware, isAdmin, usuarioController.deleteUsuario);
 
 module.exports = router;

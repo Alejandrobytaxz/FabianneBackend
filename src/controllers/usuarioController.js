@@ -10,6 +10,7 @@ exports.getAllUsuarios = async (req, res) => {
         nombre: true,
         cargo: true,
         email: true,
+        rol: true,
         activo: true,
         createdAt: true,
         updatedAt: true
@@ -32,6 +33,7 @@ exports.getUsuarioById = async (req, res) => {
         nombre: true,
         cargo: true,
         email: true,
+        rol: true,
         activo: true,
         createdAt: true,
         updatedAt: true
@@ -51,7 +53,15 @@ exports.getUsuarioById = async (req, res) => {
 // Crear un nuevo usuario (con hash de contraseña)
 exports.createUsuario = async (req, res) => {
   try {
-    const { nombre, cargo, email, password } = req.body;
+    const { nombre, cargo, email, password, rol } = req.body;
+    
+    // Validar rol
+    const rolValido = rol || 'Personal';
+    if (rolValido !== 'Administrador' && rolValido !== 'Personal') {
+      return res.status(400).json({ 
+        error: 'El rol debe ser "Administrador" o "Personal"' 
+      });
+    }
     
     // Verificar si el email ya existe
     const emailExiste = await prisma.usuario.findUnique({
@@ -73,7 +83,8 @@ exports.createUsuario = async (req, res) => {
         nombre, 
         cargo, 
         email, 
-        password: hashedPassword 
+        password: hashedPassword,
+        rol: rolValido
       }
     });
     
@@ -83,7 +94,8 @@ exports.createUsuario = async (req, res) => {
         id: usuario.id,
         nombre: usuario.nombre,
         cargo: usuario.cargo,
-        email: usuario.email
+        email: usuario.email,
+        rol: usuario.rol
       }
     });
   } catch (error) {
@@ -95,9 +107,19 @@ exports.createUsuario = async (req, res) => {
 exports.updateUsuario = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, cargo, email, activo, password } = req.body;
+    const { nombre, cargo, email, activo, password, rol } = req.body;
     
     const updateData = { nombre, cargo, email, activo };
+    
+    // Validar rol si se proporciona
+    if (rol) {
+      if (rol !== 'Administrador' && rol !== 'Personal') {
+        return res.status(400).json({ 
+          error: 'El rol debe ser "Administrador" o "Personal"' 
+        });
+      }
+      updateData.rol = rol;
+    }
     
     // Si se proporciona nueva contraseña, hashearla
     if (password) {
@@ -113,6 +135,7 @@ exports.updateUsuario = async (req, res) => {
         nombre: true,
         cargo: true,
         email: true,
+        rol: true,
         activo: true,
         updatedAt: true
       }
