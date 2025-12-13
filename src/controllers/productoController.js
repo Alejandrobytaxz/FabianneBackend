@@ -11,7 +11,8 @@ exports.getAllProductos = async (req, res) => {
     });
     res.json(productos);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener productos', details: error.message });
+    console.error('Error al obtener productos:', error.message);
+    res.status(500).json({ error: 'Error al obtener productos' });
   }
 };
 
@@ -33,7 +34,8 @@ exports.getProductoById = async (req, res) => {
     
     res.json(producto);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener producto', details: error.message });
+    console.error('Error al obtener producto:', error.message);
+    res.status(500).json({ error: 'Error al obtener producto' });
   }
 };
 
@@ -88,7 +90,8 @@ exports.createProducto = async (req, res) => {
     
     res.status(201).json({ message: 'Producto creado exitosamente', producto });
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear producto', details: error.message });
+    console.error('Error al crear producto:', error.message);
+    res.status(500).json({ error: 'Error al crear producto' });
   }
 };
 
@@ -121,7 +124,8 @@ exports.updateProducto = async (req, res) => {
     
     res.json({ message: 'Producto actualizado exitosamente', producto });
   } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar producto', details: error.message });
+    console.error('Error al actualizar producto:', error.message);
+    res.status(500).json({ error: 'Error al actualizar producto' });
   }
 };
 
@@ -143,6 +147,7 @@ exports.getStockProducto = async (req, res) => {
     
     res.json({ stockTotal, detalles });
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener stock', details: error.message });
+    console.error('Error al obtener stock:', error.message);
+    res.status(500).json({ error: 'Error al obtener stock' });
   }
 };

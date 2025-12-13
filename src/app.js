@@ -50,7 +50,7 @@ app.use((req, res) => {
 
 // Manejo de errores generales
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Error interno:', err.message);
   res.status(500).json({
     error: 'Error interno del servidor'
   });

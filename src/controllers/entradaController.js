@@ -17,7 +17,8 @@ exports.getAllEntradas = async (req, res) => {
     });
     res.json(entradas);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener entradas', details: error.message });
+    console.error('Error al obtener entradas:', error.message);
+    res.status(500).json({ error: 'Error al obtener entradas' });
   }
 };
 
@@ -44,7 +45,8 @@ exports.getEntradaById = async (req, res) => {
     
     res.json(entrada);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener entrada', details: error.message });
+    console.error('Error al obtener entrada:', error.message);
+    res.status(500).json({ error: 'Error al obtener entrada' });
   }
 };
 
@@ -151,6 +153,7 @@ exports.createEntrada = async (req, res) => {
     
     res.status(201).json({ message: 'Entrada registrada exitosamente', entrada });
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear entrada', details: error.message });
+    console.error('Error al crear entrada:', error.message);
+    res.status(500).json({ error: 'Error al crear entrada' });
   }
 };

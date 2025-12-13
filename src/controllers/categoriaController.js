@@ -12,7 +12,8 @@ exports.getAllCategorias = async (req, res) => {
     });
     res.json(categorias);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener categorías', details: error.message });
+    console.error('Error al obtener categorías:', error.message);
+    res.status(500).json({ error: 'Error al obtener categorías' });
   }
 };
 
@@ -33,7 +34,8 @@ exports.getCategoriaById = async (req, res) => {
     
     res.json(categoria);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener categoría', details: error.message });
+    console.error('Error al obtener categoría:', error.message);
+    res.status(500).json({ error: 'Error al obtener categoría' });
   }
 };
 
@@ -67,7 +69,8 @@ exports.createCategoria = async (req, res) => {
     
     res.status(201).json({ message: 'Categoría creada exitosamente', categoria });
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear categoría', details: error.message });
+    console.error('Error al crear categoría:', error.message);
+    res.status(500).json({ error: 'Error al crear categoría' });
   }
 };
 
@@ -123,7 +126,8 @@ exports.updateCategoria = async (req, res) => {
     
     res.json({ message: 'Categoría actualizada exitosamente', categoria });
   } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar categoría', details: error.message });
+    console.error('Error al actualizar categoría:', error.message);
+    res.status(500).json({ error: 'Error al actualizar categoría' });
   }
 };
 
@@ -163,6 +167,7 @@ exports.deleteCategoria = async (req, res) => {
     
     res.json({ message: 'Categoría eliminada exitosamente' });
   } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar categoría', details: error.message });
+    console.error('Error al eliminar categoría:', error.message);
+    res.status(500).json({ error: 'Error al eliminar categoría' });
   }
 };

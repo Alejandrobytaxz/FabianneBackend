@@ -73,10 +73,9 @@ exports.register = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error en register:', error);
+    console.error('Error en register:', error.message);
     res.status(500).json({ 
-      error: 'Error al registrar usuario', 
-      details: error.message 
+      error: 'Error al registrar usuario'
     });
   }
 };
@@ -145,7 +144,7 @@ exports.login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error en login:', error);
+    console.error('Error en login:', error.message);
     res.status(500).json({ 
       error: 'Error al iniciar sesión', 
       details: error.message 
@@ -179,10 +178,9 @@ exports.verifyToken = async (req, res) => {
       usuario
     });
   } catch (error) {
-    console.error('Error en verifyToken:', error);
+    console.error('Error en verifyToken:', error.message);
     res.status(500).json({ 
-      error: 'Error al verificar token', 
-      details: error.message 
+      error: 'Error al verificar token'
     });
   }
 };
@@ -225,10 +223,9 @@ exports.changePassword = async (req, res) => {
     
     res.json({ message: 'Contraseña actualizada exitosamente' });
   } catch (error) {
-    console.error('Error en changePassword:', error);
+    console.error('Error en changePassword:', error.message);
     res.status(500).json({ 
-      error: 'Error al cambiar contraseña', 
-      details: error.message 
+      error: 'Error al cambiar contraseña'
     });
   }
 };

@@ -18,7 +18,8 @@ exports.getAllUsuarios = async (req, res) => {
     });
     res.json(usuarios);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener usuarios', details: error.message });
+    console.error('Error al obtener usuarios:', error.message);
+    res.status(500).json({ error: 'Error al obtener usuarios' });
   }
 };
 
@@ -46,7 +47,8 @@ exports.getUsuarioById = async (req, res) => {
     
     res.json(usuario);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener usuario', details: error.message });
+    console.error('Error al obtener usuario:', error.message);
+    res.status(500).json({ error: 'Error al obtener usuario' });
   }
 };
 
@@ -99,7 +101,8 @@ exports.createUsuario = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear usuario', details: error.message });
+    console.error('Error al crear usuario:', error.message);
+    res.status(500).json({ error: 'Error al crear usuario' });
   }
 };
 
@@ -143,7 +146,8 @@ exports.updateUsuario = async (req, res) => {
     
     res.json({ message: 'Usuario actualizado exitosamente', usuario });
   } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar usuario', details: error.message });
+    console.error('Error al actualizar usuario:', error.message);
+    res.status(500).json({ error: 'Error al actualizar usuario' });
   }
 };
 
@@ -158,6 +162,7 @@ exports.deleteUsuario = async (req, res) => {
     
     res.json({ message: 'Usuario eliminado exitosamente' });
   } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar usuario', details: error.message });
+    console.error('Error al eliminar usuario:', error.message);
+    res.status(500).json({ error: 'Error al eliminar usuario' });
   }
 };

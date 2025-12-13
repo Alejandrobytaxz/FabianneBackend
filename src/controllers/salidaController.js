@@ -16,7 +16,8 @@ exports.getAllSalidas = async (req, res) => {
     });
     res.json(salidas);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener salidas', details: error.message });
+    console.error('Error al obtener salidas:', error.message);
+    res.status(500).json({ error: 'Error al obtener salidas' });
   }
 };
 
@@ -42,7 +43,8 @@ exports.getSalidaById = async (req, res) => {
     
     res.json(salida);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener salida', details: error.message });
+    console.error('Error al obtener salida:', error.message);
+    res.status(500).json({ error: 'Error al obtener salida' });
   }
 };
 
@@ -147,6 +149,7 @@ exports.createSalida = async (req, res) => {
     
     res.status(201).json({ message: 'Salida registrada exitosamente', salida });
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear salida', details: error.message });
+    console.error('Error al crear salida:', error.message);
+    res.status(500).json({ error: 'Error al crear salida' });
   }
 };
